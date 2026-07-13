@@ -201,6 +201,19 @@ function Import-Dll {
 
 }
 
+class DbConnectionFactory {
+   [string] $DbmsName
+
+   DbConnectionFactory([string] $dbmsName) {
+      $this.DbmsName = $dbmsName
+   }
+
+   [System.Data.Common.DbConnection] CreateConnection() {
+      throw [System.NotImplementedException]::new('DbConnectionFactory: CreateConnection method is not implemented.')
+   }
+
+}
+
 function Get-CredentialForUserName {
    [CmdletBinding(PositionalBinding = $false)]
    [OutputType([Management.Automation.PSCredential])]

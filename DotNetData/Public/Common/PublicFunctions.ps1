@@ -308,19 +308,6 @@ function ConvertTo-SqlQuotedName {
    return "[$($Name -replace ']', ']]')]"
 }
 
-class DbConnectionFactory {
-   [string] $DbmsName
-
-   DbConnectionFactory([string] $dbmsName) {
-      $this.DbmsName = $dbmsName
-   }
-
-   [System.Data.Common.DbConnection] CreateConnection() {
-      throw [System.NotImplementedException]::new('DbConnectionFactory: CreateConnection method is not implemented.')
-   }
-
-}
-
 function New-DataSet {
    [CmdletBinding(PositionalBinding = $false)]
    [OutputType([Data.DataRowCollection])]

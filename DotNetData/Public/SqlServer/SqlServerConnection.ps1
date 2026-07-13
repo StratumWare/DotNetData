@@ -250,3 +250,11 @@ class SqlServerConnectionFactory : DbConnectionFactory {
    }
 
 }
+
+function New-SqlServerConnectionFactory() {
+   [CmdletBinding(PositionalBinding = $false)]
+   [OutputType([SqlServerConnectionFactory])]
+   Param(
+   )
+   return [SqlServerConnectionFactory]::new()
+}
