@@ -62,7 +62,6 @@ Copyright = '© Copyright 2023 Ennovate.com'
 # RequiredAssemblies = @()
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
-# These scripts run _before_ the .psm1 script file
 # ScriptsToProcess = @()
 
 # Type files (.ps1xml) to be loaded when importing this module
@@ -76,7 +75,7 @@ Copyright = '© Copyright 2023 Ennovate.com'
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 #FunctionsToExport = '*'
-FunctionsToExport = 'Convert-TimeSpanToString', 'ConvertTo-SqlQuotedName', 'Export-Table', 'Get-Rows', 'New-DataAdapter', 'New-DataSet', 'New-MySqlConnection', 'New-PostgreSqlConnection', 'New-SqlServerConnection', 'New-SqlServerConnectionFactory', 'Set-DotNetDataConfiguration', 'Write-ErrorRecord'
+FunctionsToExport = 'Convert-TimeSpanToString', 'ConvertTo-SqlQuotedName', 'Export-Table', 'Get-Rows', 'New-DataAdapter', 'New-DataSet', 'New-MySqlConnection', 'New-PostgreSqlConnection', 'New-SqlServerConnection', 'Set-DotNetDataConfiguration', 'Write-ErrorRecord'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 #CmdletsToExport = @()
