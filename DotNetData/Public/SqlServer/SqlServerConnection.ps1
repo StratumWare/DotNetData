@@ -243,18 +243,3 @@ function New-SqlServerConnection {
    }
 
 }
-
-class SqlServerConnectionFactory : DbConnectionFactory {
-
-   SqlServerConnectionFactory() : base('SqlServer') {
-   }
-
-}
-
-function New-SqlServerConnectionFactory() {
-   [CmdletBinding(PositionalBinding = $false)]
-   [OutputType([SqlServerConnectionFactory])]
-   Param(
-   )
-   return [SqlServerConnectionFactory]::new()
-}

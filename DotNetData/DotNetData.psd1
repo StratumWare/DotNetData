@@ -62,6 +62,7 @@ Copyright = '© Copyright 2023 Ennovate.com'
 # RequiredAssemblies = @()
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
+# These scripts run _before_ the .psm1 script file
 # ScriptsToProcess = @()
 
 # Type files (.ps1xml) to be loaded when importing this module
