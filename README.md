@@ -19,7 +19,7 @@ CODE HERE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 
 #### Connecting from an untrusted domain
 
-When connecting to a database instance in one domain from another domain, where there is no trust relationship between those domains, `runs /netonly` can be used to provide authorization.
+When connecting to a database instance in one domain from another domain, where there is no trust relationship between those domains, `runas /netonly` can be used to provide authorization.
 
 Using Integrated Security, if there is no trust relationship between the client domain and the server domain, an exception is thrown:
 

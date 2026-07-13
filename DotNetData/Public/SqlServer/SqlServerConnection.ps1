@@ -243,3 +243,10 @@ function New-SqlServerConnection {
    }
 
 }
+
+class SqlServerConnectionFactory : DbConnectionFactory {
+
+   SqlServerConnectionFactory( : base('SqlServer')) {
+   }
+
+}
