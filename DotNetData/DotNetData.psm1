@@ -10,7 +10,7 @@ Set-StrictMode -Version 'Latest' # Current and child scopes
 [int] $Script:DefaultCommandTimeout = 300 # default is 30
 
 
-# Get arrays of private, and public source files
+# Get arrays of private and public source files
 
 if ($PSVersionTable.PSVersion.Major -lt 3) {
    # -File and -Directory parameters added in PSv3
@@ -24,7 +24,7 @@ else {
 
 # Source in the source files
 
-($clsFileInfo + $pvtFileInfo + $pubFileInfo) | % {
+($pvtFileInfo + $pubFileInfo) | % {
    [IO.FileInfo] $fileInfo = $_
    
    Try {
