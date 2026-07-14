@@ -1,4 +1,9 @@
 <# DotNetData.psm1
+
+Troubleshooting:
+
+   $Error[0].Exception.ErrorRecord
+
 #>
 
 $verbosePref = $Global:VerbosePreference
@@ -35,6 +40,72 @@ else {
       [Management.Automation.ErrorRecord] $er = $_
       Write-Error -ErrorRecord $er -CategoryReason 'dot source threw exception' -CategoryTargetName $fileInfo.Name -CategoryTargetType 'File'
    } # Catch
+
+}
+
+
+<# CLASSES #>
+
+class DbConnectionFactory {
+   static [Collections.Generic.Dictionary[String, DbConnectionFactory]] $ConnectionFactoryDict = [Collections.Generic.Dictionary[String, DbConnectionFactory]]::new()
+   [String] $DbmsName
+
+   static [void] AddConnectionFactory([String] $dbmsName, [DbConnectionFactory] $cf) {
+      if ([DbConnectionFactory]::ConnectionFactoryDict.ContainsKey($dbmsName)) {
+         Write-Warning -Message "DotNetData.psm1: Connection factory for DBMS name '${dbmsName}' already exists - using first definition"
+      }
+      else {
+         [DbConnectionFactory]::ConnectionFactoryDict[$dbmsName] = $cf
+      }
+   }
+
+   static [DbConnectionFactory] GetConnectionFactory([String] $dbmsName) {
+      if (-not [DbConnectionFactory]::ConnectionFactoryDict.ContainsKey($dbmsName)) {
+         throw [ArgumentException]::new('$dbmsName', 'DotNetData.psm1: DBMS name not recognized')
+      }
+      return [DbConnectionFactory]::ConnectionFactoryDict[$dbmsName]
+   }
+
+   DbConnectionFactory([String] $dbmsName) {
+      $this.DbmsName = $dbmsName
+   }
+
+   [Data.Common.DbConnection] CreateConnection([String] $server) {
+      throw [NotImplementedException]::new('DotNetData.psm1: CreateConnection($server) method not implemented in subclass')
+   }
+
+   [Data.Common.DbConnection] CreateConnection([String] $server, [String] $userName) {
+      throw [NotImplementedException]::new('DotNetData.psm1: CreateConnection($server, $userName) method not implemented in subclass')
+   }
+
+}
+
+class OracleConnectionFactory : DbConnectionFactory {
+
+   OracleConnectionFactory() : base('Oracle') {
+   }
+
+   [Data.SqlClient.SqlConnection] CreateConnection([String] $server, [String] $userName) {
+#   [Data.Common.DbConnection] CreateConnection([String] $server) {
+      return New-OracleConnection -Server $server -UserName $userName
+   }
+
+}
+
+class SqlServerConnectionFactory : DbConnectionFactory {
+
+   SqlServerConnectionFactory() : base('SQL Server') {
+   }
+
+   [Data.SqlClient.SqlConnection] CreateConnection([String] $server) {
+#   [Data.Common.DbConnection] CreateConnection([String] $server) {
+      return New-SqlServerConnection -Server $server -IntegratedSecurity
+   }
+
+   [Data.SqlClient.SqlConnection] CreateConnection([String] $server, [String] $userName) {
+#   [Data.Common.DbConnection] CreateConnection([String] $server) {
+      return New-SqlServerConnection -Server $server -UserName $userName
+   }
 
 }
 

@@ -1,3 +1,5 @@
+<# Public/SqlServer/SqlServerConnection.ps1
+#>
 
 [Data.SqlClient.SqlConnectionStringBuilder] $Script:sscsb = $NULL
 
@@ -49,7 +51,6 @@ function New-SqlServerConnection {
 
       if ($Script:sscsb -eq $NULL) {
          [Data.SqlClient.SqlConnectionStringBuilder] $Script:sscsb = New-Object -TypeName 'Data.SqlClient.SqlConnectionStringBuilder'
-
       }
 
       [Collections.Generic.Queue[string]] $queue = New-Object -TypeName 'Collections.Generic.Queue[string]'
@@ -132,7 +133,7 @@ function New-SqlServerConnection {
                }
                Write-Output -InputObject $conn
                return
-            }
+            } # Try
             Catch {
                [Management.Automation.ErrorRecord] $er = $_
                Write-Error -ErrorRecord $er -CategoryReason 'SqlConnection.Open threw exception' -CategoryTargetName $tryServer -CategoryTargetType 'Server'
@@ -144,6 +145,10 @@ function New-SqlServerConnection {
                   # Check for DNS CNAME record with this $tryServer as an alias for a canonical name
                      [Object[]] $dnsRecords = Resolve-DnsName -Name $tryServer -Type 'CNAME' -Verbose:$false
                         # Object[ Microsoft.DnsClient.Commands.DnsRecord_PTR | Microsoft.DnsClient.Commands.DnsRecord_A ]
+                     if ($dnsRecords -eq $null) {
+                        Write-Warning -Message "SqlServerConnection.ps1: No CNAME DNS records for DNS name '${tryServer}'"
+                     } # if ($dnsRecords -eq $null)
+                     else { # $dnsRecords -ne $null
                      Write-Verbose -Message "Resolve-DnsName -Name '${tryServer}' -Type 'CNAME' - $($dnsRecords.Count) DNS Record(s)"
                      $dnsRecords | % {
                         $dnsRecord = $_
@@ -156,12 +161,17 @@ function New-SqlServerConnection {
                            }
                         }
                      } # % $dnsRecords
+                     } # else ($dnsRecords -ne $null)
 
                   # Search for any DNS alias CNAME records with this $tryServer as the canonical name
                      # TO DO
 
                   # Check for alternate host name(s)
                      [Object[]] $dnsRecords = Resolve-DnsName -Name $tryServer -Type 'A_AAAA' -Verbose:$false
+                     if ($dnsRecords -eq $null) {
+                        Write-Warning -Message "SqlServerConnection.ps1: No A_AAAA DNS records for DNS name '${tryServer}'"
+                     } # if ($dnsRecords -eq $null)
+                     else { # $dnsRecords -ne $null
                      Write-Verbose -Message "Resolve-DnsName -Name '${tryServer}' -Type 'A_AAAA' - $($dnsRecords.Count) DNS Record(s)"
                      $dnsRecords | % {
                         $dnsRecord = $_
@@ -228,6 +238,7 @@ function New-SqlServerConnection {
                            }
                         } # if ($dnsRecord.Section -eq 'Answer')
                      } # % $dnsRecords
+                     } # else ($dnsRecords -ne $null)
 
                   } # if ($er.Exception.HResult -eq 0x80131501)
                } # if ($er.FullyQualifiedErrorId -eq 'SqlException')

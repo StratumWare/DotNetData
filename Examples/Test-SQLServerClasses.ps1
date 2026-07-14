@@ -1,14 +1,23 @@
+<# Test-SQLServerClasses.ps1
 
-Clear-Host
+To reload updated module:
+   Remove-Module -Name 'DotNetData'
 
-Import-Module -Name 'DotNetData' -Force
+#>
+
+using module 'DotNetData'
 
 [int] $Script:DefaultCommandTimeout = 30
 
+[SqlServerConnectionFactory] $cf = [SqlServerConnectionFactory]::new()
+[DbConnectionFactory]::AddConnectionFactory('SQL Server', $cf)
+
 function Test-SqlServer {
 
-   [Data.SqlClient.SqlConnection] $conn1 = New-SqlServerConnection -Server '{your-server-name-or-"localhost"}' -IntegratedSecurity -Verbose
-   [Data.SqlClient.SqlConnection] $conn2 = New-SqlServerConnection -Server '{your-server-name-or-"localhost"}' -Port 1433 -User '{your-username}' -Verbose
+   [SqlServerConnectionFactory] $cf = [DbConnectionFactory]::GetConnectionFactory('SQL Server')
+
+   [Data.SqlClient.SqlConnection] $conn1 = $cf.CreateConnection('{your-server-name-or-"localhost"}')
+   [Data.SqlClient.SqlConnection] $conn2 = $cf.CreateConnection('{your-server-name-or-"localhost"}')
    if ($conn1.State -eq 'Open' -and $conn2.State -eq 'Open') {
       Try {
 
@@ -17,8 +26,7 @@ function Test-SqlServer {
          $paramTypeDict1['@dbid'] = [Data.SqlDbType]::Int
          $paramTypeDict1['@dbname'] = [Data.SqlDbType]::NVarChar
 
-         [String] $query2 = $query1
-#         [String] $query2 = "select cast(ServerProperty(N'ServerName') as nvarchar(128)) [ServerName], db.[database_id], db.[name] [database_name], db.[compatibility_level], db.[state_desc], db.[recovery_model_desc] from [master].[sys].[databases] db where db.[database_id] > @dbid and db.[name] not in (@dbname) order by db.[name] asc;"
+         [String] $query2 = "select cast(ServerProperty(N'ServerName') as nvarchar(128)) [ServerName], db.[database_id], db.[name] [database_name], db.[compatibility_level], db.[state_desc], db.[recovery_model_desc] from [master].[sys].[databases] db where db.[database_id] > @dbid and db.[name] not in (@dbname) order by db.[name] asc;"
          [Collections.Generic.Dictionary[[String], [Data.SqlDbType]]] $paramTypeDict2 = New-Object -TypeName 'Collections.Generic.Dictionary[[String], [Data.SqlDbType]]'
          $paramTypeDict2['@dbid'] = [Data.SqlDbType]::Int
          $paramTypeDict2['@dbname'] = [Data.SqlDbType]::NVarChar
