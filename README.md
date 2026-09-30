@@ -9,13 +9,25 @@ The original use case that prompted creating this code was synchronizing data in
 Database Management Systems (DBMS) currently supported:
 + Microsoft SQL Server
 + MySQL from Oracle
++ Oracle
 + PostgreSQL
++ SQLite
 
 CODE HERE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ### Usage
 1. Download the `DotNetData.zip` archive file.
 1. Extract the archive under one of directories in `$env:PSModulePath`, such as `C:\Program Files\WindowsPowerShell\Modules`.
+
+### Design
+This module uses a Class-to-Cmdlet Mapping style, rather than a more generic style, to provide the abstraction among the various DBMS, mirroring the .NET abstraction for the underlying DBMS engines. There is simply just a thin wrapper directly over the ADO.NET classes.
+#### Advantages
+1. The thin wrapper provides better visibility of the underlying ADO.NET classes to the developer. The raw, underlying .NET driver mechanics are exposed to the developer.
+1. With the thin wrapper, cmdlet names and parameter behavior map almost 1-to-1 with the native classes. If you already are familiar with writing ADO.NET code in other languages, such as C#, writing the PowerShell code should be fairly easy.
+1. The exposure of the underlying mechanics makes troubleshooting easier. If something goes wrong, you get the exact, unadulterated exception thrown by the underlying database driver, making the stack traces incredibly precise. (Unfortunately, this also exposes any flaws in the vendor's database driver, such as the case-sensitivity mismatch in the MySQL driver mentioned below - these flaws should be addressed directly with the driver vendor.)
+1. The Class-to-Cmdlet abstraction avoids the "Lowest Common Denominator" limitation that would be imposed by a unified abstraction style.
+1. Because it doesn't hide the underlying .NET data types, the developer has complete access to and control of vendor-specific features, data types and optimization hooks, such as query timeouts and memory-buffer tuning.
+1. 
 
 #### Connecting from an untrusted domain
 
