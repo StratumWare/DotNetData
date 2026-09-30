@@ -27,7 +27,6 @@ This module uses a Class-to-Cmdlet Mapping style, rather than a more generic sty
 1. The exposure of the underlying mechanics makes troubleshooting easier. If something goes wrong, you get the exact, unadulterated exception thrown by the underlying database driver, making the stack traces incredibly precise. (Unfortunately, this also exposes any flaws in the vendor's database driver, such as the case-sensitivity mismatch in the MySQL driver mentioned below - these flaws should be addressed directly with the driver vendor.)
 1. The Class-to-Cmdlet abstraction avoids the "Lowest Common Denominator" limitation that would be imposed by a unified abstraction style.
 1. Because it doesn't hide the underlying .NET data types, the developer has complete access to and control of vendor-specific features, data types and optimization hooks, such as query timeouts and memory-buffer tuning.
-1. 
 
 #### Connecting from an untrusted domain
 
