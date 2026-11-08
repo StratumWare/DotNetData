@@ -93,14 +93,18 @@ function New-SqlServerConnection {
                'UserName' {
                   $Script:sscsb['Integrated Security'] = $false
                   $Script:sscsb['User ID'] = $UserName
-                  [Management.Automation.PSCredential] $Credential = Get-CredentialForUserName -UserName $UserName -CallStackFrame $CallStackFrame
-                  if ($Credential -ne $null) {
+                  [Management.Automation.PSCredential] $Credential = Get-CredentialForUserName -UserName $UserName -Server $aServer -CallStackFrame $CallStackFrame
+                  if ($Credential -eq $null -or [String]::IsNullOrWhiteSpace($Credential.GetNetworkCredential().Password)) {
+                     Write-Error -Message "Connection for server '${tryServer}' not created due to missing credentials for UserName '${UserName}'" -CategoryReason 'Missing credentials' -CategoryTargetName $MyInvocation.MyCommand.Name -CategoryTargetType 'Credentials'
+                     return
+                  }
+                  else {
                      $Script:sscsb['User ID'] = $Credential.UserName
                      $Script:sscsb['Password'] = $Credential.GetNetworkCredential().Password
                   }
                }
                default {
-                  Write-Error -Message "ParameterSetName '$($PSCmdlet.ParameterSetName)' not recognized" -CategoryReason 'Coding error in module!' -CategoryTargetName $MyInvocation.MyCommand.Name -CategoryTargetType 'ModuleFile'
+                  Write-Error -Message "$($MyInvocation.MyCommand.Name): ParameterSetName '$($PSCmdlet.ParameterSetName)' not recognized" -CategoryReason 'Coding error in module!' -CategoryTargetName $MyInvocation.MyCommand.Name -CategoryTargetType 'Module File'
                }
             }
 
@@ -115,30 +119,32 @@ function New-SqlServerConnection {
                $Script:sscsb['MultiSubnetFailover'] = $MultiSubnetFailover
             }
 
-            [String[]] $connstr = $Script:sscsb.ToString()
+            [string] $connstr = $Script:sscsb.ToString()
 
          # Connect to SQL Server instance
 
             [Data.SqlClient.SqlConnection] $conn = New-Object -TypeName 'Data.SqlClient.SqlConnection' ($connstr)
 
-#            [String] $xServer = $connstr.Substring($connstr.IndexOf('Data Source=') + 12, $connstr.IndexOf(';', $connstr.IndexOf('Data Source=')) - $connstr.IndexOf('Data Source=') - 12)
             Try {
                $conn.Open()
-               if ($conn.State -ne 'Open') {
-                  [String[]] $msgs = "$($MyInvocation.MyCommand.Name): conn.Open() with Data Source=${server}", "Connection.Type             = $($conn.GetType().FullName)", "Connection.State            = $($conn.State)", "Connection.DataSource       = $($conn.DataSource)", "Connection.Database         = $($conn.Database)", "Connection.ConnectionString = $($conn.ConnectionString)"
-                  Write-Error -Message ($msgs -join [Environment]::NewLine) -CategoryReason 'SqlConnection.Open failed' -CategoryTargetName $tryServer -CategoryTargetType 'Server'
+               if ($conn.State -eq 'Open') {
+                  if ($tryServer -ne $aServer) {
+                     Write-Warning -Message "Connection with DNS Name ${tryServer} was successful but ${aServer} was not$([Environment]::NewLine)         SPN for ${aServer} may be missing$([Environment]::NewLine)         Check with: setspn -Q `"MSSQLSvc/${aServer}`"$([Environment]::NewLine)         Compare to: setspn -Q `"MSSQLSvc/${tryServer}`""
+                  }
                }
-               elseif ($tryServer -ne $aServer) {
-                  Write-Warning -Message "Connection with DNS Name ${tryServer} was successful but ${aServer} was not$([Environment]::NewLine)         SPN for ${aServer} may be missing$([Environment]::NewLine)         Check with: setspn -Q `"MSSQLSvc/${aServer}`"$([Environment]::NewLine)         Compare to: setspn -Q `"MSSQLSvc/${tryServer}`""
+               else {
+                  [String[]] $msgs = "conn.Open() with Data Source=${server}", "Connection.Type             = $($conn.GetType().FullName)", "Connection.State            = $($conn.State)", "Connection.DataSource       = $($conn.DataSource)", "Connection.Database         = $($conn.Database)", "Connection.ConnectionString = $($conn.ConnectionString)"
+                  Write-Error -Message ($msgs -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::OpenError) -CategoryReason 'SqlConnection.Open failed' -CategoryTargetName $tryServer -CategoryTargetType 'Server'
                }
+            # Return the Connection regardless of State 'Open' or not
                Write-Output -InputObject $conn
                return
             } # Try
             Catch {
                [Management.Automation.ErrorRecord] $er = $_
-               Write-Error -ErrorRecord $er -CategoryReason 'SqlConnection.Open threw exception' -CategoryTargetName $tryServer -CategoryTargetType 'Server'
+               Write-Error -ErrorRecord $er -CategoryTargetName $tryServer -CategoryTargetType 'Server'
                if ($er.FullyQualifiedErrorId -eq 'SqlException') {
-                  Write-Warning -Message "HResult $('0x{0:x8}' -f $er.Exception.HResult) $($er.Exception.Message)"
+                  Write-Warning -Message "${tryServer} HResult $('0x{0:x8}' -f $er.Exception.HResult) $($er.Exception.Message)"
                   if ($er.Exception.HResult -eq 0x80131501) {
                      # Login failed. The login is from an untrusted domain and cannot be used with Windows authentication.
 
@@ -161,7 +167,6 @@ function New-SqlServerConnection {
                            }
                         }
                      } # % $dnsRecords
-                     } # else ($dnsRecords -ne $null)
 
                   # Search for any DNS alias CNAME records with this $tryServer as the canonical name
                      # TO DO
@@ -176,7 +181,23 @@ function New-SqlServerConnection {
                      $dnsRecords | % {
                         $dnsRecord = $_
                         if ($dnsRecord.Section -eq 'Answer') {
-                           if ('A', 'AAAA' -contains $dnsRecord.Type) {
+                           if ($dnsRecord.Type -eq 'CNAME') {
+                                 Write-Verbose -Message "Resolve-DnsName -Name '${anotherToTry}' -Type 'CNAME'"
+                                 [Object[]] $dnsRecords2 = Resolve-DnsName -Name $anotherToTry -Type 'CNAME' -Verbose:$false
+                                 $dnsRecords2 | % {
+                                    $dnsRecord2 = $_
+                                    if ($dnsRecord2.Section -eq 'Answer' -and $dnsRecord2.Type -eq 'CNAME') {
+                                       [String] $anotherToTry2 = $dnsRecord2.Name
+                                       if ($alreadyBeingTried -notcontains $anotherToTry2) {
+                                          Write-Warning -Message "$($dnsRecord2.NameHost) is canonical host name in DNS CNAME record for alias $($dnsRecord2.Name)"
+                                          $queue.Enqueue($anotherToTry2)
+                                          [void] $alreadyBeingTried.Add($anotherToTry2)
+                                       }
+                                    }
+                                 } # % $dnsRecords2
+                              }
+                           }
+                           elseif ('A', 'AAAA' -contains $dnsRecord.Type) {
                            # Look up HostName in DNS
                            # If different, it may have a DNS alias CNAME record with this $tryServer as the canonical name
                               Write-Verbose -Message "dnsRecord.Name: $($dnsRecord.Name) GetHostEntry('$($dnsRecord.IPAddress)')"

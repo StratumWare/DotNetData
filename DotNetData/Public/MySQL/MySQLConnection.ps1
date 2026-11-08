@@ -9,7 +9,7 @@ function New-MySqlConnection {
    [CmdletBinding(PositionalBinding = $false)]
    [OutputType([Data.Common.DbConnection[]])]
    Param(
-      [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $false)]
+      [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
       [String] $Server,
       [Parameter(Position = 1, Mandatory = $false, ValueFromPipeline = $false)]
       [ValidateRange(-1,65535)]
@@ -41,7 +41,12 @@ function New-MySqlConnection {
 
       # Load the DLL for MySQL Connector for .NET
 
-         Import-Dll -DllPath $mysqlConfig.DllPath
+         try {
+            Import-Dll -UsingLoadWithPartialName -DllPath $mysqlConfig.DllPath
+         }
+         catch {
+            return $null
+         }
 
       } # if ($Script:firstMySqlConn)
 
@@ -55,43 +60,47 @@ function New-MySqlConnection {
 
    Process {
 
-      Initialize-MySqlConnectionStringBuilder -ConnectionStringBuilder $Script:mycsb
-      $Script:mycsb['Server'] = $Server
-      if ($Port -ge 0) {
-         $Script:mycsb['Port'] = $Port
-      }
-      $Script:mycsb['Database'] = $DatabaseName
-      $Script:mycsb['UserID'] = $UserName
-      [Management.Automation.PSCredential] $Credential = Get-CredentialForUserName -UserName $UserName -CallStackFrame $CallStackFrame
-      if ($Credential -ne $null) {
+   # When $Server is from "-Server" parameter, each item in [String[]] $Server list is processed separately
+   # for each item, return a single connection for just one name in $queue (vs. adding all $Server items to $queue at once)
+      $Server | % {
+         [String] $aServer = $_
+
+         Initialize-MySqlConnectionStringBuilder -ConnectionStringBuilder $Script:mycsb
+         $Script:mycsb['Server'] = $Server
+         if ($Port -ge 0) {
+            $Script:mycsb['Port'] = $Port
+         }
+         $Script:mycsb['Database'] = $DatabaseName
+         $Script:mycsb['UserID'] = $UserName
+         [Management.Automation.PSCredential] $Credential = Get-CredentialForUserName -UserName $UserName -Server $aServer -CallStackFrame $CallStackFrame
+         if ($Credential -eq $NULL) {
+            return $null
+         }
          $Script:mycsb['UserID'] = $Credential.UserName
          $Script:mycsb['Password'] = $Credential.GetNetworkCredential().Password
-      }
-      [String[]] $connstrs = , $Script:mycsb.ToString()
+         [string] $connstr = $Script:mycsb.ToString()
 
-   # Connect to MySQL instances
+      # Connect to MySQL instance
 
-      $connstrs | % {
-         $connstr = $_
+            [MySql.Data.MySqlClient.MySqlConnection] $conn = New-Object -TypeName 'MySql.Data.MySqlClient.MySqlConnection' ($connstr)
 
-         [MySql.Data.MySqlClient.MySqlConnection] $conn = New-Object -TypeName 'MySql.Data.MySqlClient.MySqlConnection' ($connstr)
-
-         [String] $server = $connstr.Substring($connstr.IndexOf('server=') + 7, $connstr.IndexOf(';', $connstr.IndexOf('server=')) - $connstr.IndexOf('server=') - 7)
-         Try {
-            $conn.Open()
-            if ($conn.State -ne 'Open') {
-               [String[]] $msgs = "$($MyInvocation.MyCommand.Name): conn.Open() with Data Source=${server}", "$($MyInvocation.MyCommand.Name): Connection.State            = $($conn.State)", "Connection.DataSource       = $($conn.DataSource)", "Connection.Database         = $($conn.Database)", "Connection.ConnectionString = $($conn.ConnectionString)"
-               Write-Error -Message ($msgs -join [Environment]::NewLine) -CategoryReason 'MySqlConnection.Open failed' -CategoryTargetName $server -CategoryTargetType 'Server'
+            [String] $server = $connstr.Substring($connstr.IndexOf('server=') + 7, $connstr.IndexOf(';', $connstr.IndexOf('server=')) - $connstr.IndexOf('server=') - 7)
+            Try {
+               $conn.Open()
+               if ($conn.State -ne 'Open') {
+                  [String[]] $msgs = "$($MyInvocation.MyCommand.Name): conn.Open() with Data Source=${server}", "$($MyInvocation.MyCommand.Name): Connection.State            = $($conn.State)", "Connection.DataSource       = $($conn.DataSource)", "Connection.Database         = $($conn.Database)", "Connection.ConnectionString = $($conn.ConnectionString)"
+                  Write-Error -Message ($msgs -join [Environment]::NewLine) -Category ([Management.Automation.ErrorCategory]::ConnectionError) -CategoryReason 'MySqlConnection.Open failed' -CategoryTargetName $server -CategoryTargetType 'Server'
+               }
             }
-         }
-         Catch {
-            [Management.Automation.ErrorRecord] $er = $_
-            Write-Error -ErrorRecord $er -CategoryReason 'MySqlConnection.Open threw exception' -CategoryTargetName $server -CategoryTargetType 'Server'
-         }
+            Catch {
+               [Management.Automation.ErrorRecord] $er = $_
+               Write-Error -ErrorRecord $er -CategoryTargetName $server -CategoryTargetType 'Server'
+            }
 
-         Write-Output -InputObject $conn
+         # Return the Connection regardless of State 'Open' or not
+            Write-Output -InputObject $conn
 
-      } # % $connstrs
+      } # % $Server
 
    } # Process
 
