@@ -30,12 +30,14 @@ function New-OracleConnection {
 
    Process {
 
+   # When $Server is from "-Server" parameter, each item in [String[]] $Server list is processed separately
+   # for each item, return a single connection for just one name in $queue (vs. adding all $Server items to $queue at once)
       $Server | % {
          [String] $aServer = $_
 
          Initialize-OracleConnectionStringBuilder -ConnectionStringBuilder $Script:sscsb
 
-         [String[]] $connstr = $Script:sscsb.ToString()
+         [string] $connstr = $Script:sscsb.ToString()
 
       # Connect to Oracle instance
 
@@ -45,15 +47,17 @@ function New-OracleConnection {
             $conn.Open()
             if ($conn.State -ne 'Open') {
                [String[]] $msgs = "$($MyInvocation.MyCommand.Name): conn.Open() with Data Source=${server}", "Connection.Type             = $($conn.GetType().FullName)", "Connection.State            = $($conn.State)", "Connection.DataSource       = $($conn.DataSource)", "Connection.Database         = $($conn.Database)", "Connection.ConnectionString = $($conn.ConnectionString)"
-               Write-Error -Message ($msgs -join [Environment]::NewLine) -CategoryReason 'SqlConnection.Open failed' -CategoryTargetName $aServer -CategoryTargetType 'Server'
+               Write-Error -Message ($msgs -join [Environment]::NewLine) -Category ([Management.Automation.ErrorCategory]::ConnectionError) -CategoryReason 'OracleConnection.Open failed' -CategoryTargetName $aServer -CategoryTargetType 'Server'
             }
-            Write-Output -InputObject $conn
             return
          } # Try
          Catch {
             [Management.Automation.ErrorRecord] $er = $_
-            Write-Error -ErrorRecord $er -CategoryReason 'OracleConnection.Open threw exception' -CategoryTargetName $aServer -CategoryTargetType 'Server'
+            Write-Error -ErrorRecord $er -CategoryTargetName $aServer -CategoryTargetType 'Server'
          } # Catch
+
+      # Return the Connection regardless of State 'Open' or not
+         Write-Output -InputObject $conn
 
       } # % $Server
 
