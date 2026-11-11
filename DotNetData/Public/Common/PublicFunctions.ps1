@@ -73,7 +73,7 @@ function Get-PackageDll {
          $CallStackFrame = (gcs)[1]
       }
 
-      [Management.Automation.CallStackFrame] $csf = (gcs)[0]; switch -Exact ($PSEdition) {
+      [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; switch -Exact ($PSEdition) {
          'Core' {
          # NuGet global-packages path (dotnet nuget locals global-packages --list)
             [string] $nugetBasePath = Join-Path $env:USERPROFILE -ChildPath '.nuget' | Join-Path -ChildPath 'packages'
@@ -85,7 +85,7 @@ function Get-PackageDll {
          # Error Message with location in this module
             [string[]] $msgs = @(
                "$($MyInvocation.MyCommand.Name): Unrecognized PSEdition '${PSEdition}'"
-               "in $($csf.FunctionName) at $($csf.ScriptName): $($csf.ScriptLineNumber)", "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+               "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
             )
             [string] $activity = "switch ('${PSEdition}')"
             Write-Error -Message ($msgs -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::NotImplemented) -CategoryReason 'Coding error in module!' -CategoryActivity $activity -CategoryTargetName $MyInvocation.MyCommand.Name -CategoryTargetType 'Module'
@@ -148,7 +148,7 @@ function Set-DotNetDataConfiguration {
 
       [Collections.Generic.Dictionary[[string], [Type]]] $paramNameTypeDict = New-Object -TypeName 'Collections.Generic.Dictionary[[string], [Type]]'
 
-      [Management.Automation.CallStackFrame] $csf = (gcs)[0]; switch -Exact ($DBMS) {
+      [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; switch -Exact ($DBMS) {
 
          'MySQL' {
             $paramNameTypeDict['DllPath'] = [string[]]
@@ -169,10 +169,12 @@ function Set-DotNetDataConfiguration {
 # IMPL: Using $msgs1, $functionAndScriptLocation1, $activity1 due to: Cannot overwrite variable msgs because the variable has been optimized.
          default {
          # Error Message with location in this module
-            [string[]] $msgs1 = , "$($MyInvocation.MyCommand.Name): Unrecognized DBMS '${DBMS}'"
-            [string] $functionAndScriptLocation1 = "in $($csf.FunctionName) at $($csf.ScriptName): $($csf.ScriptLineNumber)"
+            [string[]] $msgs = @(
+               "$($MyInvocation.MyCommand.Name): Unrecognized DBMS '${DBMS}'"
+               "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+            )
             [string] $activity1 = "switch ('${DBMS}')"
-            Write-Error -Message (@( $msgs1; $functionAndScriptLocation1 ) -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::NotImplemented) -CategoryReason 'Coding error in module!' -CategoryActivity $activity1 -CategoryTargetName $MyInvocation.MyCommand.Name -CategoryTargetType 'Module'
+            Write-Error -Message ($msgs -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::NotImplemented) -CategoryReason 'Coding error in module!' -CategoryActivity $activity1 -CategoryTargetName $MyInvocation.MyCommand.Name -CategoryTargetType 'Module'
          }
 
       } # switch ($DBMS)
@@ -210,7 +212,7 @@ function Set-DotNetDataConfiguration {
 
       [Boolean] $hasDllPath = $false
 
-      [Management.Automation.CallStackFrame] $csf = (gcs)[0]; switch -Exact ($DBMS) {
+      [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; switch -Exact ($DBMS) {
 
          'MySQL' {
             $hasDllPath = $true
@@ -230,10 +232,12 @@ function Set-DotNetDataConfiguration {
 
          default {
          # Error Message with location in this module
-            [string[]] $msgs = , "$($MyInvocation.MyCommand.Name): Unrecognized DBMS '${DBMS}'"
-            [string] $functionAndScriptLocation = "in $($csf.FunctionName) at $($csf.ScriptName): $($csf.ScriptLineNumber)"
+            [string[]] $msgs = @(
+               "$($MyInvocation.MyCommand.Name): Unrecognized DBMS '${DBMS}'"
+               "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+            )
             [string] $activity = "switch ('${DBMS}')"
-            Write-Error -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::NotImplemented) -CategoryReason 'Coding error in module!' -CategoryActivity $activity -CategoryTargetName $MyInvocation.MyCommand.Name -CategoryTargetType 'Module'
+            Write-Error -Message ($msgs -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::NotImplemented) -CategoryReason 'Coding error in module!' -CategoryActivity $activity -CategoryTargetName $MyInvocation.MyCommand.Name -CategoryTargetType 'Module'
          }
 
       } # switch ($DBMS)
@@ -243,12 +247,15 @@ function Set-DotNetDataConfiguration {
          $DllPath | % {
             [string] $aDllPath = $_
 
-            if ( -not ( Test-Path -LiteralPath $aDllPath ) ) {
+            [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; if ( -not ( Test-Path -LiteralPath $aDllPath ) ) {
             # Error Message with location of calling statement
-               $msgs = , "File '${aDllPath}' not found."
-               $functionAndScriptLocation = "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+               [string[]] $msgs = @(
+                  "File '${aDllPath}' not found."
+                  "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+                  "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+               )
                $activity = 'Set-DotNetDataConfiguration'
-               Write-Error -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ") -CategoryReason 'File not found' -CategoryActivity $activity -CategoryTargetName $aDllPath -CategoryTargetType 'File Path'
+               Write-Error -Message ($msgs -join "$([Environment]::NewLine)         ") -CategoryReason 'File not found' -CategoryActivity $activity -CategoryTargetName $aDllPath -CategoryTargetType 'File Path'
                $ok = $false
             }
 
@@ -535,7 +542,7 @@ function Get-DBMS {
    )
 
    [string] $dbms = [NullString]::Value
-   [Management.Automation.CallStackFrame] $csf = (gcs)[0]; switch -Exact ($InputObject.GetType().FullName) {
+   [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; switch -Exact ($InputObject.GetType().FullName) {
       'Npgsql.NpgsqlDataAdapter' {
          $dbms = 'PostgreSQL'
       }
@@ -547,10 +554,12 @@ function Get-DBMS {
       }
       default {
       # Error Message with location in this module
-         [string[]] $msgs = , "Type name '$($InputObject.GetType().FullName)' not recognized"
-         [string] $functionAndScriptLocation = "in $($csf.FunctionName) at $($csf.ScriptName): $($csf.ScriptLineNumber)"
+         [string[]] $msgs = @(
+            "Type name '$($InputObject.GetType().FullName)' not recognized"
+            "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+         )
          [string] $activity = "switch ('$($InputObject.GetType().FullName)')"
-         Write-Error -Message (@( $msgs; $functionAndScriptLocation ) -join $([Environment]::NewLine)) -Category ([Management.Automation.ErrorCategory]::NotImplemented) -CategoryReason 'Coding error in module!' -CategoryActivity $activity -CategoryTargetName $MyInvocation.MyCommand.Name -CategoryTargetType 'Module'
+         Write-Error -Message ($msgs -join $([Environment]::NewLine)) -Category ([Management.Automation.ErrorCategory]::NotImplemented) -CategoryReason 'Coding error in module!' -CategoryActivity $activity -CategoryTargetName $MyInvocation.MyCommand.Name -CategoryTargetType 'Module'
       }
    }
    Write-Output -InputObject $dbms
@@ -568,23 +577,25 @@ function Get-DataSourceNameOrAddress {
 
 # Extract the connection object
 
-   [Management.Automation.CallStackFrame] $csf = (gcs)[0]; $conn = switch ($InputObject.GetType().FullName) {
+   [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; $conn = switch ($InputObject.GetType().FullName) {
       'System.Data.SqlClient.SqlConnection'  { $InputObject }
       'System.Data.SqlClient.SqlDataAdapter' { $InputObject.SelectCommand.Connection }
       'System.Data.SQLite.SQLiteConnection'  { $InputObject }
       'System.Data.SQLite.SQLiteDataAdapter' { $InputObject.SelectCommand.Connection }
       default {
       # Error Message with location in this module
-         [string[]] $msgs = , "InputObject type '$($InputObject.GetType().FullName)' not recognized"
-         [string] $functionAndScriptLocation = "in $($csf.FunctionName) at $($csf.ScriptName): $($csf.ScriptLineNumber)"
+         [string[]] $msgs = @(
+            "InputObject type '$($InputObject.GetType().FullName)' not recognized"
+            "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+         )
          [string] $activity = "switch ('$($InputObject.GetType())')"
-         Write-Error -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::NotImplemented) -CategoryReason 'Coding error in module!' -CategoryActivity $activity -CategoryTargetName $MyInvocation.MyCommand.Name -CategoryTargetType 'Module'
+         Write-Error -Message ($msgs -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::NotImplemented) -CategoryReason 'Coding error in module!' -CategoryActivity $activity -CategoryTargetName $MyInvocation.MyCommand.Name -CategoryTargetType 'Module'
          [Type] $paramType = $null
          return $null
       }
    }
 
-   [Management.Automation.CallStackFrame] $csf = (gcs)[0]; $conn = switch ($conn.GetType().FullName) {
+   $conn = switch ($conn.GetType().FullName) {
       'System.Data.SQLite.SQLiteConnection' {
       # for SQLite, extract the DataSource from the ConnectionString ($conn.DataSource is the file name without the path or ".db" extension)
          [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; [System.Data.SQLite.SQLiteConnectionStringBuilder] $csb = New-Object -TypeName 'System.Data.SQLite.SQLiteConnectionStringBuilder' ($conn.ConnectionString)
@@ -595,11 +606,13 @@ function Get-DataSourceNameOrAddress {
             }
          }
          if ($dataSource -eq $null) {
-            [string[]] $msgs = , "$($MyInvocation.MyCommand.Name): Did not find 'datasource' in Connection String $($conn.ConnectionString)"
-            [string] $functionAndScriptLocation = "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
-            Write-Warning -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ")
+            [string[]] $msgs = @(
+               "$($MyInvocation.MyCommand.Name): Did not find 'datasource' in SQLite Connection String $($conn.ConnectionString)"
+               "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+            )
+            Write-Warning -Message ($msgs -join "$([Environment]::NewLine)         ")
             $csb.PSObject.Properties | % {
-               Write-Warning -Message "   $($_.Name): $($_.Value)"
+               Write-Warning -Message "         $($_.Name): $($_.Value)"
             }
          }
       }
@@ -721,7 +734,7 @@ function New-DataAdapter {
       [string] $paramName = 'ParameterTypeDictionary'
 
       [Data.Common.DbConnection] $conn = $Connection[0]
-      [Management.Automation.CallStackFrame] $csf = (gcs)[0]; switch -Exact ($conn.GetType()) {
+      [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; switch -Exact ($conn.GetType()) {
       # MySQL
          'MySql.Data.MySqlClient.MySqlConnection' {
             [Type] $paramType = [Collections.Generic.Dictionary[[string], [MySql.Data.MySqlClient.MySqlDbType]]]
@@ -743,10 +756,12 @@ function New-DataAdapter {
          }
          default {
          # Error Message with location in this module
-            [string[]] $msgs = , "Connection type '$($conn.GetType())' not recognized"
-            [string] $functionAndScriptLocation = "in $($csf.FunctionName) at $($csf.ScriptName): $($csf.ScriptLineNumber)"
+            [string[]] $msgs = @(
+               "Connection type '$($conn.GetType())' not recognized"
+               "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+            )
             [string] $activity = "switch ('$($conn.GetType())')"
-            Write-Error -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::NotImplemented) -CategoryReason 'Coding error in module!' -CategoryActivity $activity -CategoryTargetName $MyInvocation.MyCommand.Name -CategoryTargetType 'Module'
+            Write-Error -Message ($msgs -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::NotImplemented) -CategoryReason 'Coding error in module!' -CategoryActivity $activity -CategoryTargetName $MyInvocation.MyCommand.Name -CategoryTargetType 'Module'
             [Type] $paramType = $null
          }
       }
@@ -794,7 +809,7 @@ function New-DataAdapter {
             [Data.Common.DbConnection] $conn = $_
             $nConn += 1
 
-            [Management.Automation.CallStackFrame] $csf = (gcs)[0]; switch -Exact ($conn.GetType()) {
+            [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; switch -Exact ($conn.GetType()) {
                'Devart.Data.PostgreSql.PgSqlConnection' {
                   $cmdClass = 'Devart.Data.PostgreSql.PgSqlCommand'
                   $daClass = 'Devart.Data.PostgreSql.PgSqlDataAdapter'
@@ -817,10 +832,12 @@ function New-DataAdapter {
                }
                default {
                # Error Message with location in this module
-                  [string[]] $msgs = , "$($MyInvocation.MyCommand.Name): Connection type '$($conn.GetType())' not recognized"
-                  [string] $functionAndScriptLocation = "in $($csf.FunctionName) at $($csf.ScriptName): $($csf.ScriptLineNumber)"
+                  [string[]] $msgs = @(
+                     "$($MyInvocation.MyCommand.Name): Connection type '$($conn.GetType())' not recognized"
+                     "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+                  )
                   [string] $activity = "switch ('$($conn.GetType())')"
-                  Write-Error -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::NotImplemented) -CategoryReason 'Coding error in module!' -CategoryActivity $activity -CategoryTargetName $MyInvocation.MyCommand.Name -CategoryTargetType 'Module'
+                  Write-Error -Message ($msgs -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::NotImplemented) -CategoryReason 'Coding error in module!' -CategoryActivity $activity -CategoryTargetName $MyInvocation.MyCommand.Name -CategoryTargetType 'Module'
                   return $NULL
                }
             }
@@ -863,9 +880,11 @@ if ($cmdClass -eq $null) {
             catch {
             # Warning for suppressed Error
                [Management.Automation.ErrorRecord] $er1 = $_
-               $msgs = , "Assigning to DbDataAdapter.UpdateBatchSize failed on PowerShell Version $( ( Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full' ).Version )"
-               $functionAndScriptLocation = "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)"
-               Write-Warning -Message (@( $msgs; $functionAndScriptLocation; $Global:Error[0..($Global:Error.Count - $errorStartIndex - 1)] ) -join "$([Environment]::NewLine)         ")
+               [string[]] $msgs = @(
+                  "Assigning to DbDataAdapter.UpdateBatchSize failed on PowerShell Version $( ( Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full' ).Version )"
+                  "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)"
+               )
+               Write-Warning -Message (@( $msgs; $Global:Error[0..($Global:Error.Count - $errorStartIndex - 1)] ) -join "$([Environment]::NewLine)         ")
                Write-Error -ErrorRecord $er1 -CategoryActivity $er1.CategoryInfo.Activity -CategoryTargetName $er1.CategoryInfo.TargetName -CategoryTargetType $er1.CategoryInfo.TargetType
             } # catch
 #>
@@ -946,12 +965,15 @@ function Get-Rows {
 
       if ($PSBoundParameters.ContainsKey('DataAdapter')) {
 
-         if (1, $DataAdapter.Count -notcontains $DataSet.Count) {
+         [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; if (1, $DataAdapter.Count -notcontains $DataSet.Count) {
          # Error Message with location of calling statement
-            $msgs = , "$($MyInvocation.MyCommand.Name): Number of DataSet elements ($($DataSet.Count)) must be 1 or match the number of DataAdapter elements ($($DataAdapter.Count))"
-            $functionAndScriptLocation = "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+            [string[]] $msgs = @(
+               "$($MyInvocation.MyCommand.Name): Number of DataSet elements ($($DataSet.Count)) must be 1 or match the number of DataAdapter elements ($($DataAdapter.Count))"
+               "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+               "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+            )
             $activity = 'Get-Rows using DataAdapter(s)'
-            Write-Error -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::InvalidArgument) -CategoryReason 'Invalid parameter' -CategoryActivity $activity -CategoryTargetName 'DataSet' -CategoryTargetType 'Parameter'
+            Write-Error -Message ($msgs -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::InvalidArgument) -CategoryReason 'Invalid parameter' -CategoryActivity $activity -CategoryTargetName 'DataSet' -CategoryTargetType 'Parameter'
          }
 
          if ($DataSet.Count -eq 1) {
@@ -986,21 +1008,27 @@ function Get-Rows {
                $msgDataSet = "DataSet[${i}]"
             }
 
-            [Data.Common.DbCommand] $cmd = $da.SelectCommand
+            [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; [Data.Common.DbCommand] $cmd = $da.SelectCommand
             if ($cmd -eq $NULL) {
             # Error Message with location of calling statement
-               $msgs = , "$($MyInvocation.MyCommand.Name): Command has not been set in DataAdapter"
-               $functionAndScriptLocation = "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+               [string[]] $msgs = @(
+                  "$($MyInvocation.MyCommand.Name): Command has not been set in DataAdapter"
+                  "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+                  "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+               )
                $activity = 'Get-Rows using DataAdapter(s)'
                Write-Error -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::InvalidArgument) -CategoryReason 'Command not set' -CategoryActivity $activity -CategoryTargetName 'SelectCommand' -CategoryTargetType 'DataAdapter.Command'
             }
 
-            if ($cmd.Connection.State -ne 'Open') {
+            [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; if ($cmd.Connection.State -ne 'Open') {
             # Error Message with location of calling statement
-               $msgs = , "$($MyInvocation.MyCommand.Name): Connection to instance `"$($cmd.Connection.DataSource)`" is not 'Open'"
-               $functionAndScriptLocation = "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+               [string[]] $msgs = @(
+                  "$($MyInvocation.MyCommand.Name): Connection to instance `"$($cmd.Connection.DataSource)`" is not 'Open'"
+                  "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+                  "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+               )
                $activity = 'Get-Rows using DataAdapter(s)'
-               Write-Error -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::ConnectionError) -CategoryReason 'Connection not Open' -CategoryActivity $activity -CategoryTargetName $cmd.Connection.DataSource -CategoryTargetType 'DataSource'
+               Write-Error -Message ($msgs -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::ConnectionError) -CategoryReason 'Connection not Open' -CategoryActivity $activity -CategoryTargetName $cmd.Connection.DataSource -CategoryTargetType 'DataSource'
                if ($DataAdapter.Count -eq 1) {
                   [Boolean] $ok = $false
                }
@@ -1043,11 +1071,14 @@ function Get-Rows {
                   catch {
                   # ErrorRecord
                      [Management.Automation.ErrorRecord] $er1 = $_
-                     [string] $activity = 'DataAdapter.Fill'
                      [string] $dataSource = Get-DataSourceNameOrAddress -InputObject $da
-                     $msgs = "$($MyInvocation.MyCommand.Name): [$($da.GetType().FullName)].Fill() threw an error", "DataSource: ${dataSource}"
-                     $functionAndScriptLocation = "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)", "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
-                     Write-Warning -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ")
+                     [string[]] $msgs = @(
+                        "$($MyInvocation.MyCommand.Name): [$($da.GetType().FullName)].Fill() threw an error", "DataSource: ${dataSource}"
+                        "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)"
+                        "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+                     )
+                     [string] $activity = 'DataAdapter.Fill'
+                     Write-Warning -Message ($msgs -join "$([Environment]::NewLine)         ")
                      Write-Error -ErrorRecord $er1 -CategoryActivity $er1.CategoryInfo.Activity -CategoryTargetName $er1.CategoryInfo.TargetName -CategoryTargetType $er1.CategoryInfo.TargetType
                      [Boolean] $ok = $false
                   } # catch
@@ -1068,14 +1099,18 @@ function Get-Rows {
 
       if ($ok) {
 
-         if ($DataSetIndex -ge $DataSet.Count) {
+         [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; if ($DataSetIndex -ge $DataSet.Count) {
          # Error Message with location of calling statement
-            $msgs = , "$($MyInvocation.MyCommand.Name): DataSetIndex ${DataSetIndex} not valid. DataSet.Count=$($DataSet.Count)"
+            [string[]] $msgs = @(
+               "$($MyInvocation.MyCommand.Name): DataSetIndex ${DataSetIndex} not valid. DataSet.Count=$($DataSet.Count)"
+               "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+               "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+            )
             $activity = 'Get-Rows Dataset[${DataSetIndex}] Tables[${TableIndex}]'
-            Write-Error -Message (@( $msgs ) -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::InvalidArgument) -CategoryReason 'Command not set' -CategoryActivity $activity -CategoryTargetName 'SelectCommand' -CategoryTargetType 'DataAdapter.Command'
+            Write-Error -Message ($msgs -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::InvalidArgument) -CategoryReason 'Command not set' -CategoryActivity $activity -CategoryTargetName 'SelectCommand' -CategoryTargetType 'DataAdapter.Command'
          } # if ($DataSetIndex -ge $DataSet.Count)
          else { # $DataSetIndex -lt $DataSet.Count
-            if ($TableIndex -ge $DataSet[$DataSetIndex].Tables.Count) {
+            [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; if ($TableIndex -ge $DataSet[$DataSetIndex].Tables.Count) {
                if ($DataSet.Count -eq 1) {
                   [string] $msgDataSet = "DataSet"
                }
@@ -1083,9 +1118,13 @@ function Get-Rows {
                   [string] $msgDataSet = "DataSet[${DataSetIndex}]"
                }
             # Error Message with location of calling statement
-               $msgs = , "$($MyInvocation.MyCommand.Name): TableIndex ${TableIndex} not valid. ${msgDataSet}.Tables.Count=$($DataSet[$DataSetIndex].Tables.Count)"
+               [string[]] $msgs = @(
+                  "$($MyInvocation.MyCommand.Name): TableIndex ${TableIndex} not valid. ${msgDataSet}.Tables.Count=$($DataSet[$DataSetIndex].Tables.Count)"
+                  "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+                  "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+               )
                $activity = 'Get-Rows Dataset[${DataSetIndex}] Tables[${TableIndex}]'
-               Write-Error -Message (@( $msgs ) -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::InvalidArgument) -CategoryReason 'Command not set' -CategoryActivity $activity -CategoryTargetName 'SelectCommand' -CategoryTargetType 'DataAdapter.Command'
+               Write-Error -Message ($msgs -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::InvalidArgument) -CategoryReason 'Command not set' -CategoryActivity $activity -CategoryTargetName 'SelectCommand' -CategoryTargetType 'DataAdapter.Command'
             }
             else {
                [Data.DataTable] $table = $Dataset[$DataSetIndex].Tables[$TableIndex]
@@ -1199,19 +1238,29 @@ function Compare-DataFromTwoDataAdapters {
       [int] $i2 = 0
 
       [Data.DataRow] $row1 = $null
-      if ($dataRowLists[0].Count -gt 0) {
+      [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; if ($dataRowLists[0].Count -gt 0) {
          $row1 = $dataRowLists[0][$i1]
       }
       else {
-         Write-Warning -Message "$($MyInvocation.MyCommand.Name): No rows in input #1"
+         [string[]] $msgs = @(
+            "$($MyInvocation.MyCommand.Name): No rows in input #1 ($($DataAdapters[0].SelectCommand.Connection.DataSource))"
+            "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+            "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+         )
+         Write-Warning -Message ($msgs -join "$([Environment]::NewLine)         ")
       }
 
       [Data.DataRow] $row2 = $null
-      if ($dataRowLists[1].Count -gt 0) {
+      [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; if ($dataRowLists[1].Count -gt 0) {
          $row2 = $dataRowLists[1][$i2]
       }
       else {
-         Write-Warning -Message "$($MyInvocation.MyCommand.Name): No rows in input #2"
+         [string[]] $msgs = @(
+            "$($MyInvocation.MyCommand.Name): No rows in input #2 ($($DataAdapters[1].SelectCommand.Connection.DataSource))"
+            "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+            "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+         )
+         Write-Warning -Message ($msgs -join "$([Environment]::NewLine)         ")
       }
 
       [Data.DataRow] $prev1 = $null
@@ -1243,9 +1292,12 @@ function Compare-DataFromTwoDataAdapters {
                      catch {
                         [Management.Automation.ErrorRecord] $er1 = $_
                      # Error Message with location of calling statement
-                        $msgs = "$($MyInvocation.MyCommand.Name): `"[StringComparer]::Ordinal.Compare`" for match column '$($MatchColumns[$j1])' threw an error", "rows1[$($j11-1)]['$($MatchColumns[$j1])'] type is $($prev1[$MatchColumns[$j1]].GetType().FullName)", "rows1[$($j11)]['$($MatchColumns[$j1])'] type is $($row1[$MatchColumns[$j1]].GetType().FullName)"
-                        $functionAndScriptLocation = "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)", "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
-                        Write-Warning -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ")
+                        [string[]] $msgs = @(
+                           "$($MyInvocation.MyCommand.Name): `"[StringComparer]::Ordinal.Compare`" for match column '$($MatchColumns[$j1])' threw an error", "rows1[$($j11-1)]['$($MatchColumns[$j1])'] type is $($prev1[$MatchColumns[$j1]].GetType().FullName)", "rows1[$($j11)]['$($MatchColumns[$j1])'] type is $($row1[$MatchColumns[$j1]].GetType().FullName)"
+                           "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)"
+                           "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+                        )
+                        Write-Warning -Message ($msgs -join "$([Environment]::NewLine)         ")
                         Write-Error -ErrorRecord $er1 -CategoryActivity $er1.CategoryInfo.Activity -CategoryTargetName $er1.CategoryInfo.TargetName -CategoryTargetType $er1.CategoryInfo.TargetType
                      } # catch
                   } # else (both MatchColumns -isnot [DBNull])
@@ -1254,7 +1306,7 @@ function Compare-DataFromTwoDataAdapters {
             if ($c -eq 0) {
             # Warning with location of calling statement
                [string[]] $msgs = @(
-                  "$($MyInvocation.MyCommand.Name): Input #1 has duplicate match columns, rows ${i1} and $($i1+1)"
+                  "$($MyInvocation.MyCommand.Name): Input #1 ($($DataAdapters[0].SelectCommand.Connection.DataSource)) has duplicate match columns, rows ${i1} and $($i1+1)"
                   for ($j2 = 0; $j2 -lt $j1; $j2 += 1) {
                      "'$($MatchColumns[$j2])' [$($prev1[$MatchColumns[$j2]].GetType().FullName)] '$($prev1[$MatchColumns[$j2]])' = [$($row1[$MatchColumns[$j2]].GetType().FullName)] '$($row1[$MatchColumns[$j2]])'"
                   }
@@ -1266,7 +1318,7 @@ function Compare-DataFromTwoDataAdapters {
             elseif ($c -gt 0) {
             # Warning with location of calling statement
                [string[]] $msgs = @(
-                  "$($MyInvocation.MyCommand.Name): Input #1 (Data Source: $($dataAdapterList[0].SelectCommand.Connection.DataSource)) is not in the correct order, rows ${i1} and $($i1+1)"
+                  "$($MyInvocation.MyCommand.Name): Input #1 ($($dataAdapterList[0].SelectCommand.Connection.DataSource)) is not in the correct order, rows ${i1} and $($i1+1)"
                   for ($j2 = 0; $j2 -lt $j1 - 1; $j2 += 1) {
                      "'$($MatchColumns[$j2])' [$($prev1[$MatchColumns[$j2]].GetType().FullName)] '$($prev1[$MatchColumns[$j2]])' = [$($row1[$MatchColumns[$j2]].GetType().FullName)] '$($row1[$MatchColumns[$j2]])'"
                   }
@@ -1302,9 +1354,12 @@ function Compare-DataFromTwoDataAdapters {
                      catch {
                         [Management.Automation.ErrorRecord] $er1 = $_
                      # Error Message with location of calling statement
-                        $msgs = "$($MyInvocation.MyCommand.Name): `"[StringComparer]::Ordinal.Compare`" for match column '$($MatchColumns[$j1])' threw an error", "rows2[$($i2-1)]['$($MatchColumns[$j1])'] type is $($prev2[$MatchColumns[$j1]].GetType().FullName)", "rows2[$($i2)]['$($MatchColumns[$j1])'] type is $($row2[$MatchColumns[$j1]].GetType().FullName)"
-                        $functionAndScriptLocation = "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)", "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
-                        Write-Warning -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ")
+                        [string[]] $msgs = @(
+                           "$($MyInvocation.MyCommand.Name): `"[StringComparer]::Ordinal.Compare`" for match column '$($MatchColumns[$j1])' threw an error", "rows2[$($i2-1)]['$($MatchColumns[$j1])'] type is $($prev2[$MatchColumns[$j1]].GetType().FullName)", "rows2[$($i2)]['$($MatchColumns[$j1])'] type is $($row2[$MatchColumns[$j1]].GetType().FullName)"
+                           "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)"
+                           "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+                        )
+                        Write-Warning -Message ($msgs -join "$([Environment]::NewLine)         ")
                         Write-Error -ErrorRecord $er1 -CategoryActivity $er1.CategoryInfo.Activity -CategoryTargetName $er1.CategoryInfo.TargetName -CategoryTargetType $er1.CategoryInfo.TargetType
                      } # catch
                   } # else (both MatchColumns -isnot [DBNull])
@@ -1312,18 +1367,19 @@ function Compare-DataFromTwoDataAdapters {
             }
             if ($c -eq 0) {
                [string[]] $msgs = @(
-                  "$($MyInvocation.MyCommand.Name): Input #2 has duplicate match columns, rows ${i2} and $($i2+1)"
+                  "$($MyInvocation.MyCommand.Name): Input #2 ($($DataAdapters[1].SelectCommand.Connection.DataSource)) has duplicate match columns, rows ${i2} and $($i2+1)"
                   for ($j2 = 0; $j2 -lt $j1; $j2 += 1) {
                      "'$($MatchColumns[$j2])' [$($prev2[$MatchColumns[$j2]].GetType().FullName)] '$($prev2[$MatchColumns[$j2]])' = [$($row2[$MatchColumns[$j2]].GetType().FullName)] '$($row2[$MatchColumns[$j2]])'"
                   }
-                  "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)", "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+                  "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)"
+                  "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
                )
                Write-Warning -Message ($msgs -join "$([Environment]::NewLine)         ")
             }
             elseif ($c -gt 0) {
             # Warning with location of calling statement
                [string[]] $msgs = @(
-                  "$($MyInvocation.MyCommand.Name): Input #2 is not in the correct order, rows ${i2} and $($i2+1)"
+                  "$($MyInvocation.MyCommand.Name): Input #2 ($($DataAdapters[1].SelectCommand.Connection.DataSource)) is not in the correct order, rows ${i2} and $($i2+1)"
                   for ($j2 = 0; $j2 -lt $j1 - 1; $j2 += 1) {
                      "'$($MatchColumns[$j2])' [$($prev2[$MatchColumns[$j2]].GetType().FullName)] '$($prev2[$MatchColumns[$j2]])' = [$($row2[$MatchColumns[$j2]].GetType().FullName)] '$($row2[$MatchColumns[$j2]])'"
                   }
@@ -1345,7 +1401,7 @@ function Compare-DataFromTwoDataAdapters {
          else { # $i1 -lt $dataRowLists[0].Count -and $i2 -lt $dataRowLists[1].Count
 
             for ($j1 = 0; $j1 -lt $MatchColumns.Count -and $c -eq 0; $j1 += 1) {
-               if ($row1.Table.Columns.ColumnName -contains $MatchColumns[$j1]) {
+               [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; if ($row1.Table.Columns.ColumnName -contains $MatchColumns[$j1]) {
                   if ($row1 -eq $null) {
                      Write-Warning -Message "$($MyInvocation.MyCommand.Name): row1 is null for `$i1 = ${i1}"
                   }
@@ -1371,8 +1427,11 @@ function Compare-DataFromTwoDataAdapters {
                      catch {
                         [Management.Automation.ErrorRecord] $er1 = $_
                      # Error Message with location of calling statement
-                        $msgs = "$($MyInvocation.MyCommand.Name): `"[StringComparer]::Ordinal.Compare`" for match column '$($MatchColumns[$j1])' threw an error", "rows1[$($i1-1)]['$($MatchColumns[$j1])'] type is $($row1[$MatchColumns[$j1]].GetType().FullName)", "rows2[$($i2)]['$($MatchColumns[$j1])'] type is $($row2[$MatchColumns[$j1]].GetType().FullName)"
-                        $functionAndScriptLocation = "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)", "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+                        [string[]] $msgs = @(
+                           "$($MyInvocation.MyCommand.Name): `"[StringComparer]::Ordinal.Compare`" for match column '$($MatchColumns[$j1])' threw an error", "rows1[$($i1-1)]['$($MatchColumns[$j1])'] type is $($row1[$MatchColumns[$j1]].GetType().FullName)", "rows2[$($i2)]['$($MatchColumns[$j1])'] type is $($row2[$MatchColumns[$j1]].GetType().FullName)"
+                           "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)"
+                           "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+                        )
                         Write-Warning -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ")
                         Write-Error -ErrorRecord $er1 -CategoryActivity $er1.CategoryInfo.Activity -CategoryTargetName $er1.CategoryInfo.TargetName -CategoryTargetType $er1.CategoryInfo.TargetType
                      } # catch
@@ -1381,10 +1440,13 @@ function Compare-DataFromTwoDataAdapters {
                } # if ($row1.Table.Columns.ColumnName -contains $MatchColumns[$j1])
                else { # $row1.Table.Columns.ColumnName -notcontains $MatchColumns[$j1]
                # Error Message with location of calling statement
-                  $msgs = , "MatchColumn '$($MatchColumns[$j1])' is not a column in the rows provided"
-                  $functionAndScriptLocation = "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+                  [string[]] $msgs = @(
+                     "MatchColumn '$($MatchColumns[$j1])' is not a column in the rows provided"
+                     "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+                     "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+                  )
                   $activity = "[StringComparer]::Ordinal.Compare(row1['$($MatchColumns[$j1])', row2['$($MatchColumns[$j1])')"
-                  Write-Error -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ") -CategoryReason 'Column not found' -CategoryActivity $activity -CategoryTargetName $MatchColumns[$j1] -CategoryTargetType 'Column Name'
+                  Write-Error -Message ($msgs -join "$([Environment]::NewLine)         ") -CategoryReason 'Column not found' -CategoryActivity $activity -CategoryTargetName $MatchColumns[$j1] -CategoryTargetType 'Column Name'
                   return
                } # else ($row1.Table.Columns.ColumnName -notcontains $MatchColumns[$j1])
             } # for ($j1 ...)
@@ -1412,38 +1474,54 @@ function Compare-DataFromTwoDataAdapters {
             [int] $same = 0
             [int] $diff = 0
             for ($j1 = 0; $j1 -lt $CompareColumns.Count; $j1 += 1) {
-               if ($row1.Table.Columns.ColumnName -contains $CompareColumns[$j1]) {
+               [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; if ($row1.Table.Columns.ColumnName -contains $CompareColumns[$j1]) {
                   if ($row1[$CompareColumns[$j1]] -is [DBNull]) {
-                     $c = -1
-                  }
-                  elseif ($row2[$CompareColumns[$j1]] -is [DBNull]) {
-                     $c = 1
-                  }
-                  else { # both CompareColumns -isnot [DBNull]
-                     [Management.Automation.CallStackFrame] $csfTry = (gcs)[0]; try {
-                        if ([StringComparer]::Ordinal.Compare($row1[$CompareColumns[$j1]], $row2[$CompareColumns[$j1]]) -eq 0) {
-                           $same += 1
-                        }
-                        else {
-                           $diff += 1
-                        }
-                     } # try
-                     catch {
-                        [Management.Automation.ErrorRecord] $er1 = $_
-                     # Error Message with location of calling statement
-                        $msgs = "$($MyInvocation.MyCommand.Name): `"[StringComparer]::Ordinal.Compare`" for compare column '$($CompareColumns[$j1])' threw an error", "rows1[$($i1-1)]['$($CompareColumns[$j1])'] type is $($row1[$CompareColumns[$j1]].GetType().FullName)", "rows2[$($i2)]['$($CompareColumns[$j1])'] type is $($row2[$CompareColumns[$j1]].GetType().FullName)"
-                        $functionAndScriptLocation = "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)", "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
-                        Write-Warning -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ")
-                        Write-Error -ErrorRecord $er1 -CategoryActivity $er1.CategoryInfo.Activity -CategoryTargetName $er1.CategoryInfo.TargetName -CategoryTargetType $er1.CategoryInfo.TargetType
-                     } # catch
-                  } # else (both CompareColumns -isnot [DBNull])
+                     if ($row2[$CompareColumns[$j1]] -is [DBNull]) {
+                        $c = 0
+                        $same += 1
+                     } # if ($row2[$CompareColumns[$j1]] -is [DBNull])
+                     else { # $row2[$CompareColumns[$j1]] -isnot [DBNull]
+                        $c = -1
+                        $diff += 1
+                     } # else ($row2[$CompareColumns[$j1]] -isnot [DBNull])
+                  } # if ($row1[$CompareColumns[$j1]] -is [DBNull])
+                  else { # $row1[$CompareColumns[$j1]] -isnot [DBNull]
+                     if ($row2[$CompareColumns[$j1]] -is [DBNull]) {
+                        $c = 1
+                        $diff += 1
+                     } # if ($row2[$CompareColumns[$j1]] -is [DBNull])
+                     else { # both CompareColumns -isnot [DBNull]
+                        [Management.Automation.CallStackFrame] $csfTry = (gcs)[0]; try {
+                           if ([StringComparer]::Ordinal.Compare($row1[$CompareColumns[$j1]], $row2[$CompareColumns[$j1]]) -eq 0) {
+                              $same += 1
+                           }
+                           else {
+                              $diff += 1
+                           }
+                        } # try
+                        catch {
+                           [Management.Automation.ErrorRecord] $er1 = $_
+                        # Error Message with location of calling statement
+                           [string[]] $msgs = @(
+                              "$($MyInvocation.MyCommand.Name): `"[StringComparer]::Ordinal.Compare`" for compare column '$($CompareColumns[$j1])' threw an error", "rows1[$($i1-1)]['$($CompareColumns[$j1])'] type is $($row1[$CompareColumns[$j1]].GetType().FullName)", "rows2[$($i2)]['$($CompareColumns[$j1])'] type is $($row2[$CompareColumns[$j1]].GetType().FullName)"
+                              "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)"
+                              "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+                           )
+                           Write-Warning -Message ($msgs -join "$([Environment]::NewLine)         ")
+                           Write-Error -ErrorRecord $er1 -CategoryActivity $er1.CategoryInfo.Activity -CategoryTargetName $er1.CategoryInfo.TargetName -CategoryTargetType $er1.CategoryInfo.TargetType
+                        } # catch
+                     } # else (both CompareColumns -isnot [DBNull])
+                  } # else ($row1[$CompareColumns[$j1]] -isnot [DBNull])
                } # if ($row1.Table.Columns.ColumnName -contains $CompareColumns[$j1])
                else { # $row1.Table.Columns.ColumnName -notcontains $CompareColumns[$j1]
                # Error Message with location of calling statement
-                  $msgs = , "CompareColumn '$($CompareColumns[$j1])' is not a column in the rows provided"
-                  $functionAndScriptLocation = "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+                  [string[]] $msgs = @(
+                     "CompareColumn '$($CompareColumns[$j1])' is not a column in the rows provided"
+                     "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+                     "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+                  )
                   $activity = "[StringComparer]::Ordinal.Compare(row1['$($CompareColumns[$j1])', row2['$($CompareColumns[$j1])')"
-                  Write-Error -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ") -CategoryReason 'Column not found' -CategoryActivity $activity -CategoryTargetName $CompareColumns[$j1] -CategoryTargetType 'Column Name'
+                  Write-Error -Message ($msgs -join "$([Environment]::NewLine)         ") -CategoryReason 'Column not found' -CategoryActivity $activity -CategoryTargetName $CompareColumns[$j1] -CategoryTargetType 'Column Name'
                   return
                } # else ($row1.Table.Columns.ColumnName -notcontains $CompareColumns[$j1])
             } # for ($j1 = 0; $j1 -lt $CompareColumns.Count; $j1 += 1)
@@ -1461,11 +1539,6 @@ function Compare-DataFromTwoDataAdapters {
          }
 
       } # while ($i1 -lt $dataRowLists[0].Count -or $i2 -lt $dataRowLists[1].Count)
-
-      $dataAdapterList | % {
-         [Data.Common.DataAdapter] $da = $_
-         $da.Dispose()
-      }
 
    } # End
 
@@ -1538,7 +1611,7 @@ function Compare-Data {
 
          $dataRowLists.Add( ([Collections.Generic.List[Data.DataRow]] $dataRowList = (New-Object -TypeName 'Collections.Generic.List[Data.DataRow]') ) )
 
-         [Data.DataRow[]] $rows = Get-Rows @params
+         [Data.DataRow[]] $rows = Get-Rows @params -CallStackFrame $CallStackFrame
          $dataRowList.AddRange($rows)
          for ($i = 1; $i -lt $ds.Tables.Count; $i += 1) {
             [Data.DataRow[]] $rows = Get-Rows -DataSet $ds -DataSetIndex 0 -TableIndex $i
@@ -1564,7 +1637,7 @@ function Compare-Data {
             $hasRowsLeft = $true # at least one input has rows left
          }
          else {
-            Write-Warning -Message "$($MyInvocation.MyCommand.Name): No rows in input #${i}"
+            Write-Warning -Message "$($MyInvocation.MyCommand.Name): No rows in input #${i} ($($DataAdapters[0].SelectCommand.Connection.DataSource))"
             $daRows[$i] = $null
          }
       } # for
@@ -1599,9 +1672,12 @@ function Compare-Data {
                         catch {
                            [Management.Automation.ErrorRecord] $er1 = $_
                         # Error Message with location of calling statement
-                           $msgs = "$($MyInvocation.MyCommand.Name): `"[StringComparer]::Ordinal.Compare`" for match column '$($MatchColumns[$j1])' threw an error", "daRows[${i}][$($is[$i]-1)]['$($MatchColumns[$j1])'] type is $($prevs[$i][$MatchColumns[$j1]].GetType().FullName)", "daRows[${i}][$($is[$i])]['$($MatchColumns[$j1])'] type is $($daRows[$i][$MatchColumns[$j1]].GetType().FullName)"
-                           $functionAndScriptLocation = "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)", "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
-                           Write-Warning -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ")
+                           [string[]] $msgs = @(
+                              "$($MyInvocation.MyCommand.Name): `"[StringComparer]::Ordinal.Compare`" for match column '$($MatchColumns[$j1])' threw an error", "daRows[${i}][$($is[$i]-1)]['$($MatchColumns[$j1])'] type is $($prevs[$i][$MatchColumns[$j1]].GetType().FullName)", "daRows[${i}][$($is[$i])]['$($MatchColumns[$j1])'] type is $($daRows[$i][$MatchColumns[$j1]].GetType().FullName)"
+                              "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)"
+                              "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+                           )
+                           Write-Warning -Message ($msgs -join "$([Environment]::NewLine)         ")
                            Write-Error -ErrorRecord $er1 -CategoryActivity $er1.CategoryInfo.Activity -CategoryTargetName $er1.CategoryInfo.TargetName -CategoryTargetType $er1.CategoryInfo.TargetType
                         } # catch
                      } # else (both MatchColumns -isnot [DBNull])
@@ -1610,7 +1686,7 @@ function Compare-Data {
                if ($c -eq 0) {
                # Warning with location of calling statement
                   [string[]] $msgs = @(
-                     "$($MyInvocation.MyCommand.Name): Input #$($is[$i]) has duplicate match columns, rows ${is[$i]} and $($is[$i]+1)"
+                     "$($MyInvocation.MyCommand.Name): Input #$($is[$i]) ($($DataAdapters[$i].SelectCommand.Connection.DataSource)) has duplicate match columns, rows ${is[$i]} and $($is[$i]+1)"
                      for ($j2 = 0; $j2 -lt $j1; $j2 += 1) {
                         "'$($MatchColumns[$j2])' [$($prevs[$i][$MatchColumns[$j2]].GetType().FullName)] '$($prevs[$i][$MatchColumns[$j2]])' = [$($daRows[$i][$MatchColumns[$j2]].GetType().FullName)] '$($daRows[$i][$MatchColumns[$j2]])'"
                      }
@@ -1622,7 +1698,7 @@ function Compare-Data {
                elseif ($c -gt 0) {
                # Warning with location of calling statement
                   [string[]] $msgs = @(
-                     "$($MyInvocation.MyCommand.Name): Input #$($is[$i]) is not in the correct order, rows ${is[$i]} and $($is[$i]+1)"
+                     "$($MyInvocation.MyCommand.Name): Input #$($is[$i]) ($($DataAdapters[$i].SelectCommand.Connection.DataSource)) is not in the correct order, rows ${is[$i]} and $($is[$i]+1)"
                      for ($j2 = 0; $j2 -lt $j1 - 1; $j2 += 1) {
                         "'$($MatchColumns[$j2])' [$($prevs[$i][$MatchColumns[$j2]].GetType().FullName)] '$($prevs[$i][$MatchColumns[$j2]])' = [$($daRows[$i][$MatchColumns[$j2]].GetType().FullName)] '$($daRows[$i][$MatchColumns[$j2]])'"
                      }
@@ -1688,9 +1764,12 @@ function Compare-Data {
                            catch {
                               [Management.Automation.ErrorRecord] $er1 = $_
                            # Error Message with location of calling statement
-                              $msgs = "$($MyInvocation.MyCommand.Name): `"[StringComparer]::Ordinal.Compare`" for match column '$($MatchColumns[$j1])' threw an error", "daRows[${i}][$($is[$i]-1)]['$($MatchColumns[$j1])'] type is $($daRows[$i][$MatchColumns[$j1]].GetType().FullName)", "rows2[$($i2)]['$($MatchColumns[$j1])'] type is $($row2[$MatchColumns[$j1]].GetType().FullName)"
-                              $functionAndScriptLocation = "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)", "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
-                              Write-Warning -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ")
+                              [string[]] $msgs = @(
+                                 "$($MyInvocation.MyCommand.Name): `"[StringComparer]::Ordinal.Compare`" for match column '$($MatchColumns[$j1])' threw an error", "daRows[${i}][$($is[$i]-1)]['$($MatchColumns[$j1])'] type is $($daRows[$i][$MatchColumns[$j1]].GetType().FullName)", "rows2[$($i2)]['$($MatchColumns[$j1])'] type is $($row2[$MatchColumns[$j1]].GetType().FullName)"
+                                 "in $($csfTry.FunctionName) at $($csfTry.ScriptName): $($csfTry.ScriptLineNumber)"
+                                 "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+                              )
+                              Write-Warning -Message ($msgs -join "$([Environment]::NewLine)         ")
                               Write-Error -ErrorRecord $er1 -CategoryActivity $er1.CategoryInfo.Activity -CategoryTargetName $er1.CategoryInfo.TargetName -CategoryTargetType $er1.CategoryInfo.TargetType
                            } # catch
                         } # else ($daRows[$lowest][$MatchColumns[$j1]] -isnot [DBNull])
@@ -1751,11 +1830,6 @@ function Compare-Data {
          } # for ($i ...)
 
       } # while ($hasRowsLeft)
-
-      $dataAdapterList | % {
-         [Data.Common.DataAdapter] $da = $_
-         $da.Dispose()
-      }
 
    } # End
 
