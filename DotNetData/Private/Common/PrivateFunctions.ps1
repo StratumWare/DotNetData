@@ -369,19 +369,19 @@ function Get-CredentialForUserName {
    }
 
    [String] $credFilePath = Join-Path -Path $env:USERPROFILE -ChildPath 'Credentials' | Join-Path -ChildPath "${UserName}.creds"
-   [Boolean] $exists = Test-Path -LiteralPath $credFilePath -PathType 'Leaf'
+   [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; [Boolean] $exists = Test-Path -LiteralPath $credFilePath -PathType 'Leaf'
    if ($exists) {
 
       [Collections.Hashtable] $credMap = Import-Clixml -LiteralPath $credFilePath
-      if ($credMap.ContainsKey($Server) -and [NullString]::Value, $null -notcontains $credMap[$Server].Password) {
+      [Management.Automation.CallStackFrame] $csf0 = (gcs)[0]; if ($credMap.ContainsKey($Server) -and [NullString]::Value, $null -notcontains $credMap[$Server].Password) {
          [object] $obj = $credMap[$Server]
-         if ($obj -eq $null) {
+         $csf0 = (gcs)[0]; if ($obj -eq $null) {
             [String[]] $msgs = , "$($MyInvocation.MyCommand.Name): Null value retrieved from password file `"${credFilePath}`" for UserName '${UserName}' Server '${Server}'"
          }
       }
       elseif ($credMap.ContainsKey('') -and [NullString]::Value, $null -notcontains $credMap[''].GetNetworkCredential().Password) {
          [object] $obj = $credMap['']
-         if ($obj -eq $null) {
+         $csf0 = (gcs)[0]; if ($obj -eq $null) {
             [String[]] $msgs = , "Null value retrieved from password file `"${credFilePath}`" for default for UserName '${UserName}'"
          }
       }
@@ -397,8 +397,10 @@ function Get-CredentialForUserName {
 
       if ($obj -eq $null) {
       # Error Message with location of calling statement
-         [Management.Automation.CallStackFrame] $csf = (gcs)[1]
-         [String] $functionAndScriptLocation = "in $($csf.FunctionName) at $($csf.ScriptName): $($csf.ScriptLineNumber)"
+         [string[]] $functionAndScriptLocation = @(
+            "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+            "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+         )
          Write-Error -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::InvalidArgument) -CategoryReason 'Null password' -CategoryActivity $($MyInvocation.MyCommand.Name) -CategoryTargetName $credFilePath -CategoryTargetType 'Password File'
       }
       elseif ($obj.psobject.Properties.Name -contains 'Credential') {
@@ -406,10 +408,12 @@ function Get-CredentialForUserName {
       }
       else {
       # Error Message with location of calling statement
-         [String[]] $msgs = , "For user '${UserName}', 'Credentials' node is missing for Server '${Server}'."
-         [Management.Automation.CallStackFrame] $csf = (gcs)[1]
-         [String] $functionAndScriptLocation = "in $($csf.FunctionName) at $($csf.ScriptName): $($csf.ScriptLineNumber)"
-         Write-Error -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::InvalidArgument) -CategoryReason 'Null password' -CategoryActivity $($MyInvocation.MyCommand.Name) -CategoryTargetName $credFilePath -CategoryTargetType 'Password File'
+         [string[]] $msgs = @(
+            "For user '${UserName}', 'Credentials' node is missing for Server '${Server}'."
+            "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+            "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+         )
+         Write-Error -Message ($msgs -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::InvalidArgument) -CategoryReason 'Null password' -CategoryActivity $($MyInvocation.MyCommand.Name) -CategoryTargetName $credFilePath -CategoryTargetType 'Password File'
          Write-Warning -Message 'Properties of [Management.Automation.PSCredential] object:'
          $obj.psobject.Properties.Name | % {
             Write-Warning -Message "   ${_}"
@@ -419,11 +423,13 @@ function Get-CredentialForUserName {
    }
    else {
    # Error Message with location of calling statement
-      [String[]] $msgs = , "$($MyInvocation.MyCommand.Name): Missing password file `"${credFilePath}`""
-      [Management.Automation.CallStackFrame] $csf = (gcs)[1]
-      [String] $functionAndScriptLocation = "in $($csf.FunctionName) at $($csf.ScriptName): $($csf.ScriptLineNumber)"
+      [string[]] $msgs = @(
+         "$($MyInvocation.MyCommand.Name): Missing password file `"${credFilePath}`""
+         "in $($csf0.FunctionName) at $($csf0.ScriptName): $($csf0.ScriptLineNumber)"
+         "in $($CallStackFrame.FunctionName) at $($CallStackFrame.ScriptName): $($CallStackFrame.ScriptLineNumber)"
+      )
       [String] $activity = 'Get-CredentialForUserName'
-      Write-Error -Message (@( $msgs; $functionAndScriptLocation ) -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::ObjectNotFound) -CategoryReason 'Missing password file' -CategoryActivity $activity -CategoryTargetName $credFilePath -CategoryTargetType 'Password File'
+      Write-Error -Message ($msgs -join "$([Environment]::NewLine)         ") -Category ([Management.Automation.ErrorCategory]::ObjectNotFound) -CategoryReason 'Missing password file' -CategoryActivity $activity -CategoryTargetName $credFilePath -CategoryTargetType 'Password File'
    }
 
 }
