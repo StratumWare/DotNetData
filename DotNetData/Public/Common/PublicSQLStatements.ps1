@@ -11,7 +11,7 @@ For any given function, the same set of columns is returned for each DBMS.
 
 function Get-ServerProperties {
    [CmdletBinding(PositionalBinding = $false, SupportsShouldProcess = $true)]
-   [OutputType()]
+   [OutputType([Collections.Generic.List[PSObject]])]
    Param(
       [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
       [Data.Common.DbConnection[]] $Connection
@@ -19,7 +19,7 @@ function Get-ServerProperties {
 
    Begin {
       [Data.DataSet] $ds1 = New-DataSet
-      [Collections.Generic.List[PSCustomObject]] $list = New-Object -TypeName 'Collections.Generic.List[PSCustomObject]'
+      [Collections.Generic.List[PSObject]] $list = New-Object -TypeName 'Collections.Generic.List[PSObject]'
    }
 
    Process {
@@ -149,7 +149,8 @@ function Get-ServerProperties {
    End {
       $ds1.Dispose()
       [Data.DataSet] $ds1 = $null
-      $list | Select-Object -Property 'DBMS', 'DataSourceName', 'MajorVersion', 'ServerVersion', 'CurrentDatabase', 'ServerName', 'MachineName', 'ComputerName', 'InstanceName', 'Vendor', 'Product', 'ProductLevel', 'ProductUpdateType', 'ProductUpdateLevel', 'ProductBuildType', 'ProductUpdateReference', 'ProductVersion', 'ProductMajorVersion', 'ProductMinorVersion', 'ProductBuild', 'Edition', 'EngineEdition', 'IsIntegratedSecurityOnly', 'IsExternalAuthenticationOnly', 'Collation', 'SqlCharSetName', 'SqlSortOrder', 'ComparisonStyle', 'IsLocalDB', 'IsClustered', 'IsHadrEnabled', 'InstanceDefaultDataPath', 'InstanceDefaultLogPath', 'InstanceDefaultBackupPath', 'IsSingleUser', 'PathSeparator', 'host_platform', 'host_release', 'host_distribution' | Write-Output
+#      $list | Select-Object -Property 'DBMS', 'DataSourceName', 'MajorVersion', 'ServerVersion', 'CurrentDatabase', 'ServerName', 'MachineName', 'ComputerName', 'InstanceName', 'Vendor', 'Product', 'ProductLevel', 'ProductUpdateType', 'ProductUpdateLevel', 'ProductBuildType', 'ProductUpdateReference', 'ProductVersion', 'ProductMajorVersion', 'ProductMinorVersion', 'ProductBuild', 'Edition', 'EngineEdition', 'IsIntegratedSecurityOnly', 'IsExternalAuthenticationOnly', 'Collation', 'SqlCharSetName', 'SqlSortOrder', 'ComparisonStyle', 'IsLocalDB', 'IsClustered', 'IsHadrEnabled', 'InstanceDefaultDataPath', 'InstanceDefaultLogPath', 'InstanceDefaultBackupPath', 'IsSingleUser', 'PathSeparator', 'host_platform', 'host_release', 'host_distribution' | Write-Output
+      return $list
    }
 
 }
@@ -161,7 +162,7 @@ function Get-ServerProperties {
 
 function Get-Databases {
    [CmdletBinding(PositionalBinding = $false, SupportsShouldProcess = $true)]
-   [OutputType()]
+   [OutputType([Collections.Generic.List[PSObject]])]
    Param(
       [Parameter(Position = 0, Mandatory = $true, ValueFromPipeline = $true)]
       [Data.Common.DbConnection[]] $Connection
@@ -169,9 +170,8 @@ function Get-Databases {
 
    Begin {
       [Data.DataSet] $ds1 = New-DataSet
-      [Collections.Generic.List[PSCustomObject]] $list = New-Object -TypeName 'Collections.Generic.List[PSCustomObject]'
+      [Collections.Generic.List[PSObject]] $list = New-Object -TypeName 'Collections.Generic.List[PSObject]'
    }
-
    Process {
       [Data.Common.DbDataAdapter[]] $dataAdapters = Get-DataAdapterForDatabases -Connection $Connection
       $dataAdapters | % {
@@ -183,12 +183,19 @@ function Get-Databases {
                   'SQL Server' {
                      [int] $majorVersion = ([version]$Connection.ServerVersion).Major
                      [Data.DataRow[]] $rows1 = Get-Rows -DataAdapter $da1 -DataSet $ds1
+                     if ($rows1.Count -eq 0) {
+                        Write-Warning -Message "No rows returned from $($da1.SelectCommand.Connection.DataSource) `"$($da1.SelectCommand.CommandText)`""
+                     }
                      $rows1 | % {
                         [Data.DataRow] $row1 = $_
+                        [boolean] $isSystemDatabase = $row1.database_id -le 4
                         [Object] $obj = New-Object -TypeName 'PSObject' -Property ([ordered]@{
-                           'DBMS'                         = $dbms
-                           'DataSourceName'               = $Connection.DataSource.Split('.')[0]
-                           'database_name'                = $row1.database_name
+                           'DBMS'             = $dbms
+                           'DataSourceName'   = $Connection.DataSource.Split('.')[0]
+                           'DatabaseName'     = $row1.database_name
+                           'IsSystemDatabase' = $isSystemDatabase
+                           'State'            = $row1.State
+                           'State_Desc'       = $row1.State_Desc
                         })
                         [void] $list.Add($obj)
                      } # % $rows1
@@ -217,7 +224,7 @@ function Get-Databases {
    End {
       $ds1.Dispose()
       [Data.DataSet] $ds1 = $null
-      $list | Select-Object -Property 'DBMS', 'DataSourceName', 'database_name' | Write-Output
+      return $list
    }
 
 }

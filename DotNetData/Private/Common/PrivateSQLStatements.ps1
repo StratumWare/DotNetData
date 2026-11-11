@@ -155,7 +155,7 @@ select version(), current_database();
             }
             'System.Data.SqlClient.SqlConnection' {
                New-DataAdapter -Connection $conn -CommandTimeout $Script:DefaultCommandTimeout -Query @'
-select db.[name] [database_name] from [sys].[databases] db where db.[name] = N'StorageProd';
+select db.[database_id], db.[name] [database_name], db.[state], db.[state_desc] from [sys].[databases] db order by case when db.[database_id] <= 4 then db.[database_id] else 99 end asc, lower(db.[name]) collate Latin1_General_BIN asc;
 '@
             }
             'System.Data.SQLite.SQLiteConnection' {

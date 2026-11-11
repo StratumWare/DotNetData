@@ -75,7 +75,7 @@ Copyright = '© Copyright 2023 Ennovate.com'
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 #FunctionsToExport = '*'
-FunctionsToExport = 'Compare-Data', 'Convert-TimeSpanToString', 'ConvertTo-SqlQuotedName', 'Export-Table', 'Get-Databases', 'Get-DataSourceNameOrAddress', 'Get-DBMS', 'Get-PackageDll', 'Get-Rows', 'Get-ServerProperties', 'New-DataAdapter', 'New-DataSet', 'New-DynamoDBConnection', 'New-MariaDBConnection', 'New-MongoDBConnection', 'New-MySqlConnection', 'New-OracleConnection', 'New-PostgreSqlConnection', 'Test-SQLite', 'New-SQLiteConnection', 'New-SqlServerConnection', 'Set-DotNetDataConfiguration', 'Set-DatabaseCredentials', 'Write-ErrorRecord'
+FunctionsToExport = 'Compare-Data', 'Compare-DataFromTwoDataAdapters', 'Convert-TimeSpanToString', 'ConvertTo-SqlQuotedName', 'Export-Table', 'Get-Databases', 'Get-DataSourceNameOrAddress', 'Get-DBMS', 'Get-PackageDll', 'Get-Rows', 'Get-ServerProperties', 'New-DataAdapter', 'New-DataSet', 'New-DynamoDBConnection', 'New-MariaDBConnection', 'New-MongoDBConnection', 'New-MySqlConnection', 'New-OracleConnection', 'New-PostgreSqlConnection', 'Test-SQLite', 'New-SQLiteConnection', 'New-SqlServerConnection', 'Set-DotNetDataConfiguration', 'Set-DatabaseCredentials', 'Write-ErrorRecord'
    # 'New-SQLiteConnection' comes from the 'PSSQLite' module
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
